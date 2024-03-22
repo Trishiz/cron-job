@@ -1,0 +1,43 @@
+spring:
+    datasource:
+        url: jdbc:mysql://192.168.1.135:3306/betdb4
+        username: root
+        password: notes
+
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+        database-platform: org.hibernate.dialect.MySQL8Dialect
+        hibernate:
+            naming_strategy: org.hibernate.cfg.EJB3NamingStrategy
+            ddl-auto: update
+            connection:
+                release_mode: after_transaction
+            current_session_context_class: jta
+            c3p0:
+                min_size: 1
+                max_size: 10
+                timeout: 1800
+                max_statements: 50
+        show-sql: false
+
+
+Gateway:
+    query: "SELECT description,GZCCY1 as currency,mti as Transaction_Identifier,responseCode,COUNT(GZTCD1)
+           AS NUMBEROFTRANSACTIONS FROM TransferMsg,TransactionCode,ISOMsg WHERE TransferMsg.GZTCD1 = TransactionCode.debitCode 
+            AND TransferMsg.groupReference = ISOMsg.retrievalReference and ISOMsg.transcodeId = TransactionCode.id  and
+               TransferMsg.dateReceived between '{previous_date} 07:00:00' and '{current_date} 07:00:00' GROUP BY GZTCD1,responseCode,mti"
+
+logging:
+    level:
+        ROOT: INFO
+        zw.co.nbs: DEBUG
+        org.springframework.web: info
+        org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
+    config: classpath:logback-spring.xml
+
+spring.devtools.add-properties: true
+spring.devtools.livereload.enabled: true
+spring.devtools.livereload.port: 35729
+spring.devtools.restart.enabled: true
+spring.devtools.restart.exclude: META-INF/maven/**,META-INF/resources/**,resources/**,static/**,public/**,templates/**,**/*Test.class,**/*Tests.class,git.properties,META-INF/build-info.properties
+
