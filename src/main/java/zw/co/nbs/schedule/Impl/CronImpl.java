@@ -88,8 +88,6 @@ public class CronImpl implements Cron {
                 System.out.println("Number of Transactions: " + numberOfTransactions);
                 System.out.println("------------------------------------");
             }
-
-
             excelGenerationService.generateExcelAndSendEmail(transactionReportDtoList);
 
             resultSet.close();

@@ -5,16 +5,17 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.springframework.context.ApplicationContext;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
-import zw.co.nbs.business.api.ExcelGenerationService;
-import zw.co.nbs.response.dto.TransactionReportDto;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import zw.co.nbs.business.api.ExcelGenerationService;
+import zw.co.nbs.integrations.auth.api.NotificationService;
+import zw.co.nbs.response.dto.TransactionReportDto;
+import zw.co.nbs.utils.notifications.request.SendEmailRequestDto;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,10 +26,17 @@ import java.util.List;
 @Service
 public class ExcelGenerationServiceImpl implements ExcelGenerationService {
     private final JavaMailSender mailSender;
-    public ExcelGenerationServiceImpl(final ApplicationContext context){
-        this.mailSender=context.getBean(JavaMailSender.class);
+    private final NotificationService notificationService;
+   private String message;
+//    private MultipartFile multipartFile;
+
+    public ExcelGenerationServiceImpl(final ApplicationContext context) {
+        this.mailSender = context.getBean(JavaMailSender.class);
+        this.notificationService = context.getBean(NotificationService.class);
     }
+
     public void generateExcelAndSendEmail(List<TransactionReportDto> transactionReportDtoList) {
+
         List<TransactionReportDto> items = transactionReportDtoList;
 
         Workbook workbook = new XSSFWorkbook();
@@ -52,7 +60,9 @@ public class ExcelGenerationServiceImpl implements ExcelGenerationService {
         }
         String path = System.getProperty("user.home") + File.separator + "Documents";
         path += File.separator + "TRANSACTION_REPORT";
+
         File customDir = new File(path);
+
 
         if (customDir.exists()) {
             System.out.println(customDir + " already exists");
@@ -61,66 +71,42 @@ public class ExcelGenerationServiceImpl implements ExcelGenerationService {
         } else {
             System.out.println("no permissions to create directory path: " + customDir);
         }
-        String excelFilePath =customDir.getAbsoluteFile() + File.separator + new Date() + "report.xls";
-        try  {
+        String excelFilePath = customDir.getAbsoluteFile() + File.separator + new Date() + "report.xls";
+        try {
             FileOutputStream outputStream = new FileOutputStream(excelFilePath);
             workbook.write(outputStream);
-//            MimeMessage message = mailSender.createMimeMessage();
-//            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-//
-//            helper.setTo("majonitrish522@gmail.com");
-//            helper.setSubject("Excel Report");
-//            helper.setText("Please find the attached Excel transaction report.");
-//
-//            helper.addAttachment("report.xlsx", new File(excelFilePath));
-//            System.out.println(helper);
-//            mailSender.send(message);
-            sendSimpleMessage();
+            sendMessage(message);
         } catch (IOException e) {
             log.error("Error sending email with attachment: ", e);
         }
-//        catch (MessagingException e){
-//      }
     }
 
-    public void sendSimpleMessage(
-            ) {
+    public void sendMessage(final String message) {
+        SendEmailRequestDto dto = new SendEmailRequestDto();
+        dto.setMessage(message);
+        dto.setSubject("TRANSACTION REPORT}");
+        dto.setTo(new String[]{TransactionReportDto.getEmailAddress()});
+        dto.setPersonalizationText("National Building Society");
+        log.info("Email: {}", message);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("majonitrish522@gmail.com");
-        message.setTo("trish.majoni@nbs.co.zw");
-        message.setSubject("Excel Report");
-        message.setText("Please find the attached Excel transaction report.");
-        mailSender.send(message);
-        System.out.println(message);
-
+//        MultipartFile multipartFile = convertToMultipartFile(dto);
+//
+//
+//        notificationService.uploadEmailAttachments(multipartFile);
     }
-
-    }
-
-
-
-
-//@Bean
-//public JavaMailSender getJavaMailSender() {
-//    JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-//    mailSender.setHost("smtp.gmail.com");
-//    mailSender.setPort(587);
-//
-//    mailSender.setUsername("my.gmail@gmail.com");
-//    mailSender.setPassword("password");
-//
-//    Properties props = mailSender.getJavaMailProperties();
-//    props.put("mail.transport.protocol", "smtp");
-//    props.put("mail.smtp.auth", "true");
-//    props.put("mail.smtp.starttls.enable", "true");
-//    props.put("mail.debug", "true");
-//
-//    return mailSender;
-//============================================================
-//spring.mail.host=smtp.gmail.com
-//spring.mail.port=587
-//spring.mail.username=<login user to smtp server>
-//spring.mail.password=<login password to smtp server>
-//spring.mail.properties.mail.smtp.auth=true
-//spring.mail.properties.mail.smtp.starttls.enable=true
+//    private MultipartFile convertToMultipartFile(SendEmailRequestDto dto) {
+//        File tempFile;
+//        try {
+//            tempFile = File.createTempFile("temp", ".tmp");
+//            tempFile.deleteOnExit();
+//        } catch (IOException e) {
+//            return null;
+//        }
+//        try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+//            fos.write(dto.getMessage().getBytes());
+//        } catch (IOException e) {
+//            return null;
+//        }
+//        return multipartFile;
+//    }
+}

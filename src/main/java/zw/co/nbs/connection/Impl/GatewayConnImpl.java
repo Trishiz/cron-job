@@ -25,21 +25,19 @@ public class GatewayConnImpl implements GatewayConn {
     private String password;
 
 
-    public Connection openConn() throws Exception {
+    public void openConn() throws Exception {
 
         if (conn == null || conn.isClosed()) {
             try {
                 log.debug("Connecting to : {},{},{}",url,username,password);
                 Class.forName(jdbcClassName);
                 conn= DriverManager.getConnection(url, username, password);
-                return conn;
             } catch (SQLException | ClassNotFoundException e) {
                 log.error("Error Opening Connection to local", e);
                 log.error("Failed to establish a connection to local:::  {}", e.getMessage());
                 throw new SQLException("Failed to connect to local database: " + url);
             }
         }
-        return conn;
     }
 
     public ResultSet executeQuery(String sqlString) {

@@ -11,6 +11,8 @@ import zw.co.nbs.business.Impl.ExcelGenerationServiceImpl;
 import zw.co.nbs.business.api.ExcelGenerationService;
 import zw.co.nbs.connection.Impl.GatewayConnImpl;
 import zw.co.nbs.connection.api.GatewayConn;
+import zw.co.nbs.integrations.auth.api.NotificationService;
+import zw.co.nbs.integrations.auth.impl.NotificationServiceImpl;
 
 import javax.mail.internet.MimeMessage;
 import java.io.InputStream;
@@ -27,10 +29,13 @@ public class BusinessImplConfig {
     public ExcelGenerationService excelGenerationService(final ApplicationContext context){
         return new ExcelGenerationServiceImpl(context);
     }
+    @Bean
+    public NotificationService notificationService(final ApplicationContext context){
+        return new NotificationServiceImpl(context);
+    }
 
     @Bean
-    public JavaMailSender mailSender(){
-        return new JavaMailSender() {
+    public JavaMailSender mailSender(){return new JavaMailSender() {
             @Override
             public MimeMessage createMimeMessage() {
                 return null;

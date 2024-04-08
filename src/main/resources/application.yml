@@ -33,13 +33,11 @@ spring:
                   starttls:
                       enable:  true
 
-
 Gateway:
     query: "SELECT description,GZCCY1 as currency,mti as Transaction_Identifier,responseCode,COUNT(GZTCD1)
            AS NUMBEROFTRANSACTIONS FROM TransferMsg,TransactionCode,ISOMsg WHERE TransferMsg.GZTCD1 = TransactionCode.debitCode 
             AND TransferMsg.groupReference = ISOMsg.retrievalReference and ISOMsg.transcodeId = TransactionCode.id  and
                TransferMsg.dateReceived between '{previous_date} 07:00:00' and '{current_date} 07:00:00' GROUP BY GZTCD1,responseCode,mti"
-
 
 logging:
     level:
